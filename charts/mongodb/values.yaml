@@ -1,0 +1,53 @@
+mongodb:
+  image:
+    repository: mongo
+    tag: "6.0"
+    pullPolicy: IfNotPresent
+  
+  port: 27017
+  
+  # Resource limits
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+  
+  # Health probes
+  livenessProbe:
+    exec:
+      command:
+        - mongo
+        - --eval
+        - "db.adminCommand('ping')"
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  
+  readinessProbe:
+    exec:
+      command:
+        - mongo
+        - --eval
+        - "db.adminCommand('ping')"
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+  # Persistence
+  persistence:
+    enabled: true
+    size: 8Gi
+    storageClass: "gp2"
+
+# Service
+service:
+  type: ClusterIP
+  port: 27017
+
+# Namespace
+namespace: geodish-app

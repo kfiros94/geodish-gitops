@@ -1,0 +1,37 @@
+# Development Environment - DevOps Bootcamp
+global:
+  environment: dev
+
+# Simple development configuration
+replicaCount: 1
+
+image:
+  tag: "22"
+  pullPolicy: Always
+
+resources:
+  limits:
+    cpu: 250m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# Disable auto-scaling for simplicity
+autoscaling:
+  enabled: false
+
+# Simple ingress configuration
+ingress:
+  enabled: true
+  hosts:
+    - host: geodish-dev.local
+      paths:
+        - path: /
+          pathType: Prefix
+
+# Development configuration
+config:
+  environment: "development"
+  logLevel: "DEBUG"
+  mongodbUrl: "mongodb://mongodb:27017/geodish"

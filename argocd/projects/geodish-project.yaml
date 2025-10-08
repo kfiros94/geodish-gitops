@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: geodish
+  namespace: argocd
+spec:
+  description: GeoDish application project
+  sourceRepos:
+  - 'https://github.com/kfiros94/geodish-gitops.git'
+  destinations:
+  - namespace: geodish-app
+    server: https://kubernetes.default.svc
+  - namespace: monitoring
+    server: https://kubernetes.default.svc
+  - namespace: logging
+    server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+  - group: ''
+    kind: Namespace
+  - group: 'rbac.authorization.k8s.io'
+    kind: ClusterRole
+  - group: 'rbac.authorization.k8s.io'
+    kind: ClusterRoleBinding
+  namespaceResourceWhitelist:
+  - group: ''
+    kind: '*'
+  - group: 'apps'
+    kind: '*'
+  - group: 'extensions'
+    kind: '*'
+  roles:
+  - name: admin
+    policies:
+    - p, proj:geodish:admin, applications, *, geodish/*, allow
+    - p, proj:geodish:admin, repositories, *, *, allow

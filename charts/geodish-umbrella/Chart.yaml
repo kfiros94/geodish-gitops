@@ -1,0 +1,15 @@
+apiVersion: v2
+name: geodish-umbrella
+description: Complete GeoDish application stack
+version: 0.1.0
+type: application
+
+dependencies:
+  - name: mongodb
+    version: "0.1.0"
+    repository: "file://../mongodb"
+    condition: mongodb.enabled
+  - name: geodish-app
+    version: "0.1.0"
+    repository: "file://../geodish-app"
+    condition: app.enabled
