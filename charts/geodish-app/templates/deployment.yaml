@@ -30,13 +30,28 @@ spec:
           containerPort: {{ .Values.app.port }}
           protocol: TCP
         env:
-        {{- toYaml .Values.app.env | nindent 8 }}
+        {{- range .Values.app.env }}
+        - name: {{ .name }}
+          value: {{ .value | quote }}
+        {{- end }}
         resources:
           {{- toYaml .Values.app.resources | nindent 10 }}
         livenessProbe:
-          {{- toYaml .Values.app.livenessProbe | nindent 10 }}
+          httpGet:
+            path: /health
+            port: {{ .Values.app.port }}
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
         readinessProbe:
-          {{- toYaml .Values.app.readinessProbe | nindent 10 }}
+          httpGet:
+            path: /health
+            port: {{ .Values.app.port }}
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
         securityContext:
           allowPrivilegeEscalation: false
           runAsNonRoot: true

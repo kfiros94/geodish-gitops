@@ -5,9 +5,7 @@ global:
 # MongoDB configuration
 mongodb:
   enabled: true
-  # Override values from mongodb chart
 
 # GeoDish App configuration  
 app:
   enabled: true
-  # Override values from geodish-app chart
