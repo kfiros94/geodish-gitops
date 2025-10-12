@@ -2,20 +2,24 @@ apiVersion: v2
 name: geodish-app-of-apps
 description: GeoDish App of Apps - Root ArgoCD Application for Managing All GeoDish Components
 type: application
-version: 0.1.0
+version: 1.0.0
 appVersion: "1.0.0"
+
 keywords:
   - geodish
   - app-of-apps
   - argocd
   - gitops
   - devops-bootcamp
+
 home: https://github.com/kfiros94/geodish-gitops
 sources:
   - https://github.com/kfiros94/geodish-gitops
+
 maintainers:
   - name: DevOps Bootcamp Student
     email: kfiramoyal@gmail.com
+
 annotations:
   category: GitOps
   argocd.argoproj.io/sync-wave: "0"

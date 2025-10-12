@@ -1,0 +1,42 @@
+# Global values shared across all components
+global:
+  namespace: geodish-app
+  environment: production
+  
+# App-specific values
+geodish-app:
+  image:
+    repository: 893692751288.dkr.ecr.ap-south-1.amazonaws.com/geodish-app
+    tag: "29"  # Will be updated by Jenkins
+  
+  # Resource limits (Kubernetes best practices)
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+      
+  # Health probes (Kubernetes best practices)
+  healthProbes:
+    liveness:
+      enabled: true
+      path: /health
+      initialDelaySeconds: 30
+      periodSeconds: 10
+    readiness:
+      enabled: true
+      path: /ready
+      initialDelaySeconds: 5
+      periodSeconds: 5
+
+# MongoDB-specific values  
+mongodb-complete:
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi

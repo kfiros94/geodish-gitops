@@ -1,14 +1,21 @@
+{{- if index .Values.applications "geodish-app" "enabled" }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: {{ index .Values.applications "geodish-app" "name" }}
   namespace: {{ .Values.global.namespace }}
+  labels:
+    app.kubernetes.io/name: {{ index .Values.applications "geodish-app" "name" }}
+    app.kubernetes.io/part-of: geodish-gitops
+    app.kubernetes.io/managed-by: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "{{ index .Values.applications "geodish-app" "syncWave" }}"
+    argocd.argoproj.io/hook: PostSync
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: {{ .Values.project.name }}
+  
   source:
     repoURL: {{ .Values.global.repoURL }}
     targetRevision: {{ .Values.global.targetRevision }}
@@ -17,31 +24,48 @@ spec:
       valueFiles:
         - values.yaml
       parameters:
-        - name: image.repository
-          value: "893692751288.dkr.ecr.ap-south-1.amazonaws.com/geodish-app"
         - name: image.tag
-          value: "latest"
-        - name: mongodb.host
-          value: "mongodb.geodish-app.svc.cluster.local"
-        - name: mongodb.port
-          value: "27017"
-        - name: mongodb.database
-          value: "geodish"
+          value: "{{ index .Values.applications "geodish-app" "image" "tag" }}"
+        - name: global.environment
+          value: "production"
+        - name: mongodb.enabled
+          value: "false"  # Use external MongoDB
+  
   destination:
     server: https://kubernetes.default.svc
     namespace: {{ index .Values.applications "geodish-app" "namespace" }}
+  
   syncPolicy:
     automated:
-      {{- toYaml .Values.global.syncPolicy.automated | nindent 6 }}
+      prune: {{ .Values.syncPolicy.automated.prune }}
+      selfHeal: {{ .Values.syncPolicy.automated.selfHeal }}
+      allowEmpty: {{ .Values.syncPolicy.automated.allowEmpty }}
     syncOptions:
-      {{- toYaml .Values.global.syncPolicy.syncOptions | nindent 6 }}
+      {{- range .Values.syncPolicy.syncOptions }}
+      - {{ . }}
+      {{- end }}
+      - RespectIgnoreDifferences=true
     retry:
-      {{- toYaml .Values.global.syncPolicy.retry | nindent 6 }}
-  revisionHistoryLimit: 10
+      limit: {{ .Values.syncPolicy.retry.limit }}
+      backoff:
+        duration: {{ .Values.syncPolicy.retry.backoff.duration }}
+        factor: {{ .Values.syncPolicy.retry.backoff.factor }}
+        maxDuration: {{ .Values.syncPolicy.retry.backoff.maxDuration }}
+
+  # Health check configuration
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/template/spec/containers/0/image
+        - /spec/replicas
+        
+  # Custom health check for the application
   info:
-    - name: Description
-      value: "GeoDish Flask Application - DevOps Bootcamp Project"
-    - name: Environment
-      value: "Development"
-    - name: Team
-      value: "DevOps Bootcamp"
+    - name: 'Application Version'
+      value: "{{ index .Values.applications "geodish-app" "image" "tag" }}"
+    - name: 'Environment'
+      value: 'Production'
+    - name: 'Database'
+      value: 'External MongoDB'
+{{- end }}

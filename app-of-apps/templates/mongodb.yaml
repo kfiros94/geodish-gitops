@@ -1,25 +1,58 @@
+{{- if .Values.applications.mongodb-complete.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: {{ index .Values.applications "mongodb" "name" }}
+  name: {{ index .Values.applications "mongodb-complete" "name" }}
   namespace: {{ .Values.global.namespace }}
+  labels:
+    app.kubernetes.io/name: {{ index .Values.applications "mongodb-complete" "name" }}
+    app.kubernetes.io/part-of: geodish-gitops
+    app.kubernetes.io/managed-by: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "{{ index .Values.applications "mongodb" "syncWave" }}"
+    argocd.argoproj.io/sync-wave: "{{ index .Values.applications "mongodb-complete" "syncWave" }}"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: {{ .Values.project.name }}
+  
   source:
-    repoURL: https://github.com/kfiros94/geodish-gitops.git
-    path: charts/mongodb-complete
-    targetRevision: HEAD
+    repoURL: {{ .Values.global.repoURL }}
+    targetRevision: {{ .Values.global.targetRevision }}
+    path: {{ index .Values.applications "mongodb-complete" "path" }}
+    helm:
+      valueFiles:
+        - values.yaml
+  
   destination:
     server: https://kubernetes.default.svc
-    namespace: {{ index .Values.applications "mongodb" "namespace" }}
+    namespace: {{ index .Values.applications "mongodb-complete" "namespace" }}
+  
   syncPolicy:
     automated:
-      {{- toYaml .Values.global.syncPolicy.automated | nindent 6 }}
+      prune: {{ .Values.syncPolicy.automated.prune }}
+      selfHeal: {{ .Values.syncPolicy.automated.selfHeal }}
+      allowEmpty: {{ .Values.syncPolicy.automated.allowEmpty }}
     syncOptions:
-      {{- toYaml .Values.global.syncPolicy.syncOptions | nindent 6 }}
+      {{- range .Values.syncPolicy.syncOptions }}
+      - {{ . }}
+      {{- end }}
     retry:
-      {{- toYaml .Values.global.syncPolicy.retry | nindent 6 }}
+      limit: {{ .Values.syncPolicy.retry.limit }}
+      backoff:
+        duration: {{ .Values.syncPolicy.retry.backoff.duration }}
+        factor: {{ .Values.syncPolicy.retry.backoff.factor }}
+        maxDuration: {{ .Values.syncPolicy.retry.backoff.maxDuration }}
+  
+  # Health check configuration for StatefulSets
+  ignoreDifferences:
+    - group: apps
+      kind: StatefulSet
+      jsonPointers:
+        - /spec/volumeClaimTemplates
+        - /spec/template/spec/containers/0/resources
+        
+  # Custom health checks
+  info:
+    - name: 'Database Status'
+      value: 'MongoDB Community Operator'
+{{- end }}

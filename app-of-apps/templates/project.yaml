@@ -1,0 +1,79 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: {{ .Values.project.name }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.project.name }}
+    app.kubernetes.io/part-of: geodish-gitops
+    app.kubernetes.io/managed-by: argocd
+spec:
+  description: {{ .Values.project.description }}
+  
+  # Source repositories that applications within this project can use
+  sourceRepos:
+    - {{ .Values.global.repoURL }}
+    - '893692751288.dkr.ecr.ap-south-1.amazonaws.com/*'  # ECR registry
+    - 'https://charts.bitnami.com/bitnami'  # For MongoDB operator
+    - 'https://mongodb.github.io/helm-charts'  # MongoDB community charts
+  
+  # Allowed destinations for applications
+  destinations:
+    - namespace: geodish-app
+      server: https://kubernetes.default.svc
+    - namespace: monitoring  
+      server: https://kubernetes.default.svc
+    - namespace: argocd
+      server: https://kubernetes.default.svc
+    - namespace: 'geodish-*'  # Allow any geodish namespace
+      server: https://kubernetes.default.svc
+  
+  # Cluster resource whitelist
+  clusterResourceWhitelist:
+    - group: ''
+      kind: Namespace
+    - group: 'rbac.authorization.k8s.io'
+      kind: ClusterRole
+    - group: 'rbac.authorization.k8s.io' 
+      kind: ClusterRoleBinding
+      
+  # Namespace resource whitelist  
+  namespaceResourceWhitelist:
+    - group: ''
+      kind: ConfigMap
+    - group: ''
+      kind: Secret
+    - group: ''
+      kind: Service
+    - group: ''
+      kind: ServiceAccount
+    - group: 'apps'
+      kind: Deployment
+    - group: 'apps'
+      kind: StatefulSet
+    - group: 'apps'
+      kind: ReplicaSet
+    - group: 'networking.k8s.io'
+      kind: Ingress
+    - group: 'networking.k8s.io'
+      kind: NetworkPolicy
+  
+  # RBAC configuration
+  roles:
+    - name: admin
+      description: Full admin access to geodish project
+      policies:
+        - p, proj:{{ .Values.project.name }}:admin, applications, *, {{ .Values.project.name }}/*, allow
+        - p, proj:{{ .Values.project.name }}:admin, repositories, *, *, allow
+        - p, proj:{{ .Values.project.name }}:admin, certificates, *, *, allow
+      groups:
+        - geodish-admins
+        - devops-team
+        
+    - name: developer
+      description: Developer access to geodish project
+      policies:
+        - p, proj:{{ .Values.project.name }}:developer, applications, get, {{ .Values.project.name }}/*, allow
+        - p, proj:{{ .Values.project.name }}:developer, applications, sync, {{ .Values.project.name }}/*, allow
+      groups:
+        - geodish-developers

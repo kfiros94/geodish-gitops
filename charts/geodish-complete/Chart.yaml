@@ -1,0 +1,25 @@
+apiVersion: v2
+name: geodish-complete
+description: Complete GeoDish Application Stack (App + Database)
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+
+keywords:
+  - geodish
+  - fullstack
+  - flask
+  - mongodb
+  - umbrella
+
+maintainers:
+  - name: DevOps Bootcamp Student
+    email: kfiramoyal@gmail.com
+
+dependencies:
+  - name: geodish-app
+    version: "1.0.0"
+    repository: "file://./charts/geodish-app"
+  - name: mongodb-complete
+    version: "1.0.0" 
+    repository: "file://./charts/mongodb-complete"
