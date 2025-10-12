@@ -20,7 +20,7 @@ spec:
         - name: image.repository
           value: "893692751288.dkr.ecr.ap-south-1.amazonaws.com/geodish-app"
         - name: image.tag
-          value: "latest"
+          value: "27"
         - name: mongodb.host
           value: "mongodb.geodish-app.svc.cluster.local"
         - name: mongodb.port
