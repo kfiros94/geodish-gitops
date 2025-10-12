@@ -1,0 +1,19 @@
+apiVersion: v2
+name: geodish-app
+description: A Helm chart for GeoDish Flask Application
+type: application
+version: 0.1.0
+appVersion: "latest"
+
+keywords:
+  - flask
+  - python
+  - rest-api
+  - geodish
+
+maintainers:
+  - name: DevOps Student
+    email: student@bootcamp.com
+
+annotations:
+  category: Application

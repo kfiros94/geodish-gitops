@@ -1,0 +1,50 @@
+# ArgoCD configuration
+argocd:
+  namespace: argocd
+
+# Git repository configuration  
+repo:
+  url: https://github.com/kfiros94/geodish-gitops.git
+  targetRevision: HEAD
+
+# Application configurations
+applications:
+  mongodb:
+    name: geodish-mongodb
+    namespace: devops-app
+    project: default
+    path: helm-charts/mongodb
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+        - PrunePropagationPolicy=foreground
+        - PruneLast=true
+      retry:
+        limit: 5
+        backoff:
+          duration: 5s
+          factor: 2
+          maxDuration: 3m
+
+  app:
+    name: geodish-app
+    namespace: devops-app
+    project: default
+    path: helm-charts/geodish-app
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+        - PrunePropagationPolicy=foreground
+        - PruneLast=true
+      retry:
+        limit: 5
+        backoff:
+          duration: 5s
+          factor: 2
+          maxDuration: 3m

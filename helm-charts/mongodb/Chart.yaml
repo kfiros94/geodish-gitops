@@ -1,0 +1,23 @@
+apiVersion: v2
+name: mongodb
+description: MongoDB Community Operator for GeoDish
+type: application
+version: 0.1.0
+appVersion: "6.0.5"
+
+dependencies:
+  - name: community-operator
+    version: 0.10.0
+    repository: https://mongodb.github.io/helm-charts
+
+keywords:
+  - mongodb
+  - database
+  - nosql
+
+maintainers:
+  - name: DevOps Student
+    email: student@bootcamp.com
+
+annotations:
+  category: Database

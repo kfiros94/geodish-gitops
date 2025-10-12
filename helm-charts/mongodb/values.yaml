@@ -1,0 +1,50 @@
+# MongoDB Community Operator values
+community-operator:
+  operator:
+    name: mongodb-kubernetes-operator
+    namespace: devops-app
+
+# MongoDB instance configuration
+mongodb:
+  name: geodish-mongodb
+  spec:
+    members: 1
+    type: ReplicaSet
+    version: "6.0.5"
+    security:
+      authentication:
+        modes: ["SCRAM"]
+    users:
+      - name: geodish-user
+        db: admin
+        passwordSecretRef:
+          name: mongodb-secret
+        roles:
+          - name: clusterAdmin
+            db: admin
+          - name: userAdminAnyDatabase
+            db: admin
+          - name: readWriteAnyDatabase
+            db: admin
+        scramCredentialsSecretName: mongodb-scram
+    additionalMongodConfig:
+      storage.wiredTiger.engineConfig.journalCompressor: zlib
+    statefulSet:
+      spec:
+        template:
+          spec:
+            containers:
+              - name: mongod
+                resources:
+                  limits:
+                    cpu: 500m
+                    memory: 512Mi
+                  requests:
+                    cpu: 250m
+                    memory: 256Mi
+
+# Database credentials
+credentials:
+  username: geodish-user
+  password: GeoDishPass123!
+  database: geodish

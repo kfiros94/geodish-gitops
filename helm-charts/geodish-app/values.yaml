@@ -1,0 +1,83 @@
+# Default values for geodish-app
+replicaCount: 2
+
+image:
+  repository: 893692751288.dkr.ecr.ap-south-1.amazonaws.com/geodish-app
+  pullPolicy: Always
+  tag: "latest"
+
+nameOverride: ""
+fullnameOverride: ""
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 5000
+  targetPort: 5000
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+  hosts:
+    - host: geodish.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# Resource limits and requests
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+# Health probes
+livenessProbe:
+  httpGet:
+    path: /
+    port: 5000
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /
+    port: 5000
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+# Environment variables
+env:
+  - name: FLASK_ENV
+    value: "production"
+  - name: FLASK_APP
+    value: "app.py"
+  - name: PORT
+    value: "5000"
+
+# MongoDB connection
+mongodb:
+  secretName: "mongodb-secret"
+  connectionStringKey: "connectionString"
+
+# Security context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  readOnlyRootFilesystem: false
+
+# Node selection
+nodeSelector: {}
+tolerations: []
+affinity: {}
