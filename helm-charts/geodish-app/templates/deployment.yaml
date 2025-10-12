@@ -19,9 +19,6 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          # Run app directly with Python
-          command: ["/bin/sh"]
-          args: ["-c", "pip install flask pymongo flask-cors && python app/app.py"]
           ports:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
@@ -36,6 +33,10 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.mongodb.secretName }}
                   key: {{ .Values.mongodb.connectionStringKey }}
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
