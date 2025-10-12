@@ -62,7 +62,7 @@ env:
   - name: FLASK_ENV
     value: "production"
   - name: FLASK_APP
-    value: "app.py"
+    value: "app.app:app"  # Fixed: pointing to the correct module and app object
   - name: PORT
     value: "5000"
 
