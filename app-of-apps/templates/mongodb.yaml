@@ -15,28 +15,33 @@ spec:
     chart: community-operator
     helm:
       values: |
-        # MongoDB Community Operator Configuration
+        # MongoDB Community Operator
         operator:
-          # Operator image configuration
           image:
             repository: mongodb/mongodb-kubernetes-operator
             tag: 0.9.0
-          
-        # MongoDB Instance Configuration
+          resources:
+            limits:
+              cpu: 500m
+              memory: 256Mi
+            requests:
+              cpu: 250m
+              memory: 128Mi
+        
+        # Create MongoDB Instance
         mongodb:
+          enabled: true
           name: mongodb-geodish
           version: "6.0.5"
           members: 1
           type: ReplicaSet
           
-          # Security Configuration
           security:
             authentication:
               modes: ["SCRAM"]
             tls:
               enabled: false
               
-          # Resource Configuration  
           resources:
             limits:
               cpu: "500m"
@@ -45,16 +50,9 @@ spec:
               cpu: "250m" 
               memory: "256M"
               
-          # Storage Configuration
           storage:
             size: 8Gi
-            storageClass: "gp3"
-            
-          # Additional MongoDB Configuration
-          additionalMongodConfig:
-            storage.wiredTiger.engineConfig.journalCompressor: zlib
-            storage.wiredTiger.collectionConfig.blockCompressor: zlib
-            net.compression.compressors: "zlib,zstd,snappy"
+            storageClass: "gp2"
 
   destination:
     server: https://kubernetes.default.svc
@@ -66,11 +64,3 @@ spec:
       {{- toYaml .Values.global.syncPolicy.syncOptions | nindent 6 }}
     retry:
       {{- toYaml .Values.global.syncPolicy.retry | nindent 6 }}
-  revisionHistoryLimit: 5
-  info:
-    - name: Description
-      value: "MongoDB Community Operator for GeoDish Application"
-    - name: Chart
-      value: "MongoDB Community Kubernetes Operator"
-    - name: Version
-      value: "6.0.5"
