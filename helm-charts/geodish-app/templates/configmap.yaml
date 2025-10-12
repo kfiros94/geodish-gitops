@@ -6,6 +6,6 @@ metadata:
   labels:
     {{- include "geodish-app.labels" . | nindent 4 }}
 data:
-  flask_env: {{ index .Values.env 0 "value" | default "production" }}
-  flask_app: {{ index .Values.env 1 "value" | default "app.py" }}
-  port: {{ index .Values.env 2 "value" | default "5000" }}
+  flask_env: {{ index .Values.env 0 "value" | default "production" | quote }}
+  flask_app: {{ index .Values.env 1 "value" | default "app.py" | quote }}
+  port: {{ index .Values.env 2 "value" | default "5000" | quote }}
