@@ -1,0 +1,76 @@
+apiVersion: mongodbcommunity.mongodb.com/v1
+kind: MongoDBCommunity
+metadata:
+  name: mongodb-geodish
+  namespace: geodish-app
+  labels:
+    app.kubernetes.io/name: mongodb
+    app.kubernetes.io/part-of: geodish
+    app.kubernetes.io/component: database
+    environment: development
+spec:
+  members: 1
+  type: ReplicaSet
+  version: "6.0.5"
+  
+  # Security - disabled for development
+  security:
+    authentication:
+      modes: ["SCRAM"]
+  
+  # Database users
+  users:
+    - name: geodish-user
+      db: geodish
+      passwordSecretRef:
+        name: geodish-user-password
+      roles:
+        - name: clusterAdmin
+          db: admin
+        - name: userAdminAnyDatabase
+          db: admin
+        - name: readWriteAnyDatabase  
+          db: admin
+      scramCredentialsSecretName: geodish-user-scram
+  
+  # Resource configuration
+  additionalMongodConfig:
+    storage.wiredTiger.engineConfig.journalCompressor: zlib
+    storage.wiredTiger.collectionConfig.blockCompressor: zlib
+    net.compression.compressors: "zlib,zstd,snappy"
+  
+  # StatefulSet configuration
+  statefulSet:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: mongod
+              resources:
+                limits:
+                  cpu: "500m"
+                  memory: "512M"
+                requests:
+                  cpu: "250m"
+                  memory: "256M"
+              
+      # Volume configuration  
+      volumeClaimTemplates:
+        - metadata:
+            name: data-volume
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 8Gi
+            storageClassName: gp2
+---
+# User password secret
+apiVersion: v1
+kind: Secret
+metadata:
+  name: geodish-user-password
+  namespace: geodish-app
+type: Opaque
+stringData:
+  password: "geodish123"  # Change this in production!

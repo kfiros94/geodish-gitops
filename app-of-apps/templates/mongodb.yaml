@@ -10,50 +10,9 @@ metadata:
 spec:
   project: {{ .Values.project.name }}
   source:
-    repoURL: https://mongodb.github.io/helm-charts
-    targetRevision: 0.9.0
-    chart: community-operator
-    helm:
-      values: |
-        # MongoDB Community Operator
-        operator:
-          image:
-            repository: mongodb/mongodb-kubernetes-operator
-            tag: 0.9.0
-          resources:
-            limits:
-              cpu: 500m
-              memory: 256Mi
-            requests:
-              cpu: 250m
-              memory: 128Mi
-        
-        # Create MongoDB Instance
-        mongodb:
-          enabled: true
-          name: mongodb-geodish
-          version: "6.0.5"
-          members: 1
-          type: ReplicaSet
-          
-          security:
-            authentication:
-              modes: ["SCRAM"]
-            tls:
-              enabled: false
-              
-          resources:
-            limits:
-              cpu: "500m"
-              memory: "512M"
-            requests:
-              cpu: "250m" 
-              memory: "256M"
-              
-          storage:
-            size: 8Gi
-            storageClass: "gp2"
-
+    repoURL: https://github.com/kfiros94/geodish-gitops.git
+    path: charts/mongodb-instance
+    targetRevision: HEAD
   destination:
     server: https://kubernetes.default.svc
     namespace: {{ index .Values.applications "mongodb" "namespace" }}
@@ -64,3 +23,9 @@ spec:
       {{- toYaml .Values.global.syncPolicy.syncOptions | nindent 6 }}
     retry:
       {{- toYaml .Values.global.syncPolicy.retry | nindent 6 }}
+  revisionHistoryLimit: 5
+  info:
+    - name: Description
+      value: "MongoDB Community Instance for GeoDish Application"
+    - name: Version
+      value: "6.0.5"
