@@ -10,69 +10,51 @@ metadata:
 spec:
   project: {{ .Values.project.name }}
   source:
-    repoURL: https://charts.bitnami.com/bitnami
-    targetRevision: 13.18.5
-    chart: mongodb
+    repoURL: https://mongodb.github.io/helm-charts
+    targetRevision: 0.9.0
+    chart: community-operator
     helm:
       values: |
-        # MongoDB Configuration for GeoDish Application
-        auth:
-          enabled: false
-          # For production, enable auth and use secrets
-          # rootUser: root
-          # rootPassword: your-secure-password
+        # MongoDB Community Operator Configuration
+        operator:
+          # Operator image configuration
+          image:
+            repository: mongodb/mongodb-kubernetes-operator
+            tag: 0.9.0
           
-        # Resource Configuration
-        resources:
-          limits:
-            cpu: 500m
-            memory: 512Mi
-          requests:
-            cpu: 250m
-            memory: 256Mi
-            
-        # Persistence Configuration - Using EBS Storage Class
-        persistence:
-          enabled: true
-          storageClass: "ebs-mongodb"
-          size: 8Gi
-          accessModes:
-            - ReadWriteOnce
-            
-        # Service Configuration
-        service:
-          type: ClusterIP
-          port: 27017
+        # MongoDB Instance Configuration
+        mongodb:
+          name: mongodb-geodish
+          version: "6.0.5"
+          members: 1
+          type: ReplicaSet
           
-        # Security Context
-        podSecurityContext:
-          enabled: true
-          fsGroup: 1001
-          
-        containerSecurityContext:
-          enabled: true
-          runAsUser: 1001
-          runAsNonRoot: true
-          
-        # Replica Configuration (Single instance for dev)
-        architecture: standalone
-        
-        # Metrics (for monitoring)
-        metrics:
-          enabled: true
+          # Security Configuration
+          security:
+            authentication:
+              modes: ["SCRAM"]
+            tls:
+              enabled: false
+              
+          # Resource Configuration  
           resources:
             limits:
-              cpu: 100m
-              memory: 128Mi
+              cpu: "500m"
+              memory: "512M"
             requests:
-              cpu: 50m
-              memory: 64Mi
+              cpu: "250m" 
+              memory: "256M"
               
-        # Labels for better organization
-        commonLabels:
-          app.kubernetes.io/part-of: geodish
-          app.kubernetes.io/component: database
-          environment: development
+          # Storage Configuration
+          storage:
+            size: 8Gi
+            storageClass: "gp3"
+            
+          # Additional MongoDB Configuration
+          additionalMongodConfig:
+            storage.wiredTiger.engineConfig.journalCompressor: zlib
+            storage.wiredTiger.collectionConfig.blockCompressor: zlib
+            net.compression.compressors: "zlib,zstd,snappy"
 
   destination:
     server: https://kubernetes.default.svc
@@ -87,8 +69,8 @@ spec:
   revisionHistoryLimit: 5
   info:
     - name: Description
-      value: "MongoDB Database for GeoDish Application"
+      value: "MongoDB Community Operator for GeoDish Application"
     - name: Chart
-      value: "Bitnami MongoDB Helm Chart"
-    - name: Storage
-      value: "EBS GP3 with Retain Policy"
+      value: "MongoDB Community Kubernetes Operator"
+    - name: Version
+      value: "6.0.5"
