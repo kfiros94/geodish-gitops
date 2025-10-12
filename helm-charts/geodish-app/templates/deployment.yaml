@@ -19,6 +19,9 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          # Temporary fix: install Flask at runtime
+          command: ["/bin/sh"]
+          args: ["-c", "pip install flask pymongo flask-cors && python -m flask run --host=0.0.0.0 --port=5000"]
           ports:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
@@ -33,20 +36,10 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.mongodb.secretName }}
                   key: {{ .Values.mongodb.connectionStringKey }}
-          {{- with .Values.livenessProbe }}
-          livenessProbe:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          {{- with .Values.readinessProbe }}
-          readinessProbe:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
+            - name: FLASK_APP
+              value: "app.app:app"
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          {{- with .Values.securityContext }}
-          securityContext:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
           volumeMounts:
             - name: tmp
               mountPath: /tmp
