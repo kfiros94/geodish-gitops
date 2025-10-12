@@ -13,6 +13,9 @@ spec:
   type: ReplicaSet
   version: "6.0.5"
   
+  # Fix: Use correct MongoDB image
+  mongodbDockerImage: "docker.io/mongo:6.0.5"
+  
   # Security - disabled for development
   security:
     authentication:
@@ -25,18 +28,15 @@ spec:
       passwordSecretRef:
         name: geodish-user-password
       roles:
-        - name: clusterAdmin
-          db: admin
-        - name: userAdminAnyDatabase
-          db: admin
-        - name: readWriteAnyDatabase  
-          db: admin
+        - name: readWrite
+          db: geodish
+        - name: dbAdmin
+          db: geodish
       scramCredentialsSecretName: geodish-user-scram
   
   # Resource configuration
   additionalMongodConfig:
     storage.wiredTiger.engineConfig.journalCompressor: zlib
-    storage.wiredTiger.collectionConfig.blockCompressor: zlib
     net.compression.compressors: "zlib,zstd,snappy"
   
   # StatefulSet configuration
