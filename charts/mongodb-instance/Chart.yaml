@@ -1,5 +1,0 @@
-apiVersion: v2
-name: mongodb-instance
-description: MongoDB Community Instance for GeoDish
-version: 1.0.0
-appVersion: "6.0.5"
