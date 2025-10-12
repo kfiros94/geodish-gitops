@@ -11,7 +11,7 @@ spec:
   project: {{ .Values.project.name }}
   source:
     repoURL: https://github.com/kfiros94/geodish-gitops.git
-    path: charts/mongodb-instance
+    path: charts/mongodb-complete
     targetRevision: HEAD
   destination:
     server: https://kubernetes.default.svc
@@ -23,9 +23,3 @@ spec:
       {{- toYaml .Values.global.syncPolicy.syncOptions | nindent 6 }}
     retry:
       {{- toYaml .Values.global.syncPolicy.retry | nindent 6 }}
-  revisionHistoryLimit: 5
-  info:
-    - name: Description
-      value: "MongoDB Community Instance for GeoDish Application"
-    - name: Version
-      value: "6.0.5"
