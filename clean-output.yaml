@@ -1,0 +1,161 @@
+---
+# Source: geodish-app-of-apps/templates/geodish-app.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: geodish-app
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: geodish-project
+  source:
+    repoURL: https://github.com/kfiros94/geodish-gitops.git
+    targetRevision: HEAD
+    path: charts/geodish-app
+    helm:
+      valueFiles:
+        - values.yaml
+      parameters:
+        - name: image.repository
+          value: "893692751288.dkr.ecr.ap-south-1.amazonaws.com/geodish-app"
+        - name: image.tag
+          value: "latest"
+        - name: mongodb.host
+          value: "mongodb.geodish-app.svc.cluster.local"
+        - name: mongodb.port
+          value: "27017"
+        - name: mongodb.database
+          value: "geodish"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: geodish-app
+  syncPolicy:
+    automated:
+      allowEmpty: false
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+    retry:
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m0s
+      limit: 5
+  revisionHistoryLimit: 10
+  info:
+    - name: Description
+      value: "GeoDish Flask Application - DevOps Bootcamp Project"
+    - name: Environment
+      value: "Development"
+    - name: Team
+      value: "DevOps Bootcamp"
+---
+# Source: geodish-app-of-apps/templates/mongodb.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mongodb
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: geodish-project
+  source:
+    repoURL: https://charts.bitnami.com/bitnami
+    targetRevision: 13.18.5
+    chart: mongodb
+    helm:
+      values: |
+        # MongoDB Configuration for GeoDish Application
+        auth:
+          enabled: false
+          # For production, enable auth and use secrets
+          # rootUser: root
+          # rootPassword: your-secure-password
+          
+        # Resource Configuration
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 250m
+            memory: 256Mi
+            
+        # Persistence Configuration - Using EBS Storage Class
+        persistence:
+          enabled: true
+          storageClass: "ebs-mongodb"
+          size: 8Gi
+          accessModes:
+            - ReadWriteOnce
+            
+        # Service Configuration
+        service:
+          type: ClusterIP
+          port: 27017
+          
+        # Security Context
+        podSecurityContext:
+          enabled: true
+          fsGroup: 1001
+          
+        containerSecurityContext:
+          enabled: true
+          runAsUser: 1001
+          runAsNonRoot: true
+          
+        # Replica Configuration (Single instance for dev)
+        architecture: standalone
+        
+        # Metrics (for monitoring)
+        metrics:
+          enabled: true
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+              
+        # Labels for better organization
+        commonLabels:
+          app.kubernetes.io/part-of: geodish
+          app.kubernetes.io/component: database
+          environment: development
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: geodish-app
+  syncPolicy:
+    automated:
+      allowEmpty: false
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+    retry:
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m0s
+      limit: 5
+  revisionHistoryLimit: 5
+  info:
+    - name: Description
+      value: "MongoDB Database for GeoDish Application"
+    - name: Chart
+      value: "Bitnami MongoDB Helm Chart"
+    - name: Storage
+      value: "EBS GP3 with Retain Policy"

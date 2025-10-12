@@ -1,0 +1,94 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ index .Values.applications "mongodb" "name" }}
+  namespace: {{ .Values.global.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "{{ index .Values.applications "mongodb" "syncWave" }}"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: {{ .Values.project.name }}
+  source:
+    repoURL: https://charts.bitnami.com/bitnami
+    targetRevision: 13.18.5
+    chart: mongodb
+    helm:
+      values: |
+        # MongoDB Configuration for GeoDish Application
+        auth:
+          enabled: false
+          # For production, enable auth and use secrets
+          # rootUser: root
+          # rootPassword: your-secure-password
+          
+        # Resource Configuration
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 250m
+            memory: 256Mi
+            
+        # Persistence Configuration - Using EBS Storage Class
+        persistence:
+          enabled: true
+          storageClass: "ebs-mongodb"
+          size: 8Gi
+          accessModes:
+            - ReadWriteOnce
+            
+        # Service Configuration
+        service:
+          type: ClusterIP
+          port: 27017
+          
+        # Security Context
+        podSecurityContext:
+          enabled: true
+          fsGroup: 1001
+          
+        containerSecurityContext:
+          enabled: true
+          runAsUser: 1001
+          runAsNonRoot: true
+          
+        # Replica Configuration (Single instance for dev)
+        architecture: standalone
+        
+        # Metrics (for monitoring)
+        metrics:
+          enabled: true
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+              
+        # Labels for better organization
+        commonLabels:
+          app.kubernetes.io/part-of: geodish
+          app.kubernetes.io/component: database
+          environment: development
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ index .Values.applications "mongodb" "namespace" }}
+  syncPolicy:
+    automated:
+      {{- toYaml .Values.global.syncPolicy.automated | nindent 6 }}
+    syncOptions:
+      {{- toYaml .Values.global.syncPolicy.syncOptions | nindent 6 }}
+    retry:
+      {{- toYaml .Values.global.syncPolicy.retry | nindent 6 }}
+  revisionHistoryLimit: 5
+  info:
+    - name: Description
+      value: "MongoDB Database for GeoDish Application"
+    - name: Chart
+      value: "Bitnami MongoDB Helm Chart"
+    - name: Storage
+      value: "EBS GP3 with Retain Policy"

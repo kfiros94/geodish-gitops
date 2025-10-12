@@ -1,0 +1,55 @@
+global:
+  repoURL: https://github.com/kfiros94/geodish-gitops.git
+  targetRevision: HEAD
+  namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m0s
+
+applications:
+  geodish-app:
+    enabled: true
+    name: geodish-app
+    namespace: geodish-app
+    path: charts/geodish-app
+    syncWave: "10"
+  
+  mongodb:
+    enabled: true
+    name: mongodb
+    namespace: geodish-app
+    path: charts/mongodb
+    syncWave: "5"
+
+project:
+  name: geodish-project
+  description: "GeoDish DevOps Bootcamp Project"
+  sourceRepos:
+    - https://github.com/kfiros94/geodish-gitops.git
+  destinations:
+    - namespace: geodish-app
+      server: https://kubernetes.default.svc
+    - namespace: argocd  
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: ''
+      kind: Namespace
+  namespaceResourceWhitelist:
+    - group: ''
+      kind: '*'
+    - group: apps
+      kind: '*'
+    - group: networking.k8s.io
+      kind: '*'

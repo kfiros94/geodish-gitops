@@ -1,0 +1,47 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ index .Values.applications "geodish-app" "name" }}
+  namespace: {{ .Values.global.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "{{ index .Values.applications "geodish-app" "syncWave" }}"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: {{ .Values.project.name }}
+  source:
+    repoURL: {{ .Values.global.repoURL }}
+    targetRevision: {{ .Values.global.targetRevision }}
+    path: {{ index .Values.applications "geodish-app" "path" }}
+    helm:
+      valueFiles:
+        - values.yaml
+      parameters:
+        - name: image.repository
+          value: "893692751288.dkr.ecr.ap-south-1.amazonaws.com/geodish-app"
+        - name: image.tag
+          value: "latest"
+        - name: mongodb.host
+          value: "mongodb.geodish-app.svc.cluster.local"
+        - name: mongodb.port
+          value: "27017"
+        - name: mongodb.database
+          value: "geodish"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ index .Values.applications "geodish-app" "namespace" }}
+  syncPolicy:
+    automated:
+      {{- toYaml .Values.global.syncPolicy.automated | nindent 6 }}
+    syncOptions:
+      {{- toYaml .Values.global.syncPolicy.syncOptions | nindent 6 }}
+    retry:
+      {{- toYaml .Values.global.syncPolicy.retry | nindent 6 }}
+  revisionHistoryLimit: 10
+  info:
+    - name: Description
+      value: "GeoDish Flask Application - DevOps Bootcamp Project"
+    - name: Environment
+      value: "Development"
+    - name: Team
+      value: "DevOps Bootcamp"
