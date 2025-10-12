@@ -10,7 +10,6 @@ metadata:
     app.kubernetes.io/managed-by: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "{{ index .Values.applications "geodish-app" "syncWave" }}"
-    argocd.argoproj.io/hook: PostSync
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
@@ -26,10 +25,14 @@ spec:
       parameters:
         - name: image.tag
           value: "{{ index .Values.applications "geodish-app" "image" "tag" }}"
+        - name: mongodb.host
+          value: "mongodb.geodish-app.svc.cluster.local"
+        - name: mongodb.port
+          value: "27017"
+        - name: mongodb.database
+          value: "geodish"
         - name: global.environment
           value: "production"
-        - name: mongodb.enabled
-          value: "false"  # Use external MongoDB
   
   destination:
     server: https://kubernetes.default.svc
