@@ -30,7 +30,9 @@ mongodb:
           - name: readWriteAnyDatabase
             db: admin
     
-    scramCredentialsSecretName: mongodb-scram
+    # FIX: Changed from "mongodb-scram" to "geodish-mongodb-scram"
+    # The secret name was being prefixed with empty string, causing "-scram-credentials"
+    scramCredentialsSecretName: geodish-mongodb-scram
     
     additionalMongodConfig:
       storage.wiredTiger.engineConfig.journalCompressor: zlib
