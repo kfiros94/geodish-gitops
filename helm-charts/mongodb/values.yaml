@@ -8,6 +8,7 @@ community-operator:
 # MongoDB instance configuration
 mongodb:
   name: geodish-mongodb
+  scramCredentialsSecretName: geodish-mongodb-scram
   spec:
     members: 1
     type: ReplicaSet
