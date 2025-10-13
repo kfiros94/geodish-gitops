@@ -60,8 +60,8 @@ mongodb:
                 requests:
                   storage: 20Gi
 
-# Database credentials
-credentials:
-  username: geodish-user
-  password: GeoDishPass123!
-  database: geodish
+# # Database credentials
+# credentials:
+#   username: geodish-user
+#   password: GeoDishPass123!
+#   database: geodish
