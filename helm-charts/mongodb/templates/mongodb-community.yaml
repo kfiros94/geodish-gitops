@@ -3,8 +3,8 @@ kind: MongoDBCommunity
 metadata:
   name: {{ .Values.mongodb.name }}
   namespace: {{ .Release.Namespace }}
-spec:
-  {{- toYaml .Values.mongodb.spec | nindent 2 }}
 {{- if .Values.mongodb.scramCredentialsSecretName }}
 scramCredentialsSecretName: {{ .Values.mongodb.scramCredentialsSecretName }}
 {{- end }}
+spec:
+  {{- toYaml .Values.mongodb.spec | nindent 2 }}
