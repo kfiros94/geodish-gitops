@@ -23,6 +23,7 @@ mongodb:
         db: admin
         passwordSecretRef:
           name: mongodb-secret
+        scramCredentialsSecretName: geodish-mongodb-scram
         roles:
           - name: clusterAdmin
             db: admin
