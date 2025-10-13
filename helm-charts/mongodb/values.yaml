@@ -1,4 +1,5 @@
 # MongoDB Community Operator values
+
 community-operator:
   operator:
     name: mongodb-kubernetes-operator
@@ -11,9 +12,11 @@ mongodb:
     members: 1
     type: ReplicaSet
     version: "6.0.5"
+    
     security:
       authentication:
         modes: ["SCRAM"]
+    
     users:
       - name: geodish-user
         db: admin
@@ -26,9 +29,13 @@ mongodb:
             db: admin
           - name: readWriteAnyDatabase
             db: admin
-        scramCredentialsSecretName: mongodb-scram
+    
+    scramCredentialsSecretName: mongodb-scram
+    
     additionalMongodConfig:
       storage.wiredTiger.engineConfig.journalCompressor: zlib
+    
+    # ADDED: Persistent storage configuration using your EBS CSI driver
     statefulSet:
       spec:
         template:
@@ -42,6 +49,16 @@ mongodb:
                   requests:
                     cpu: 250m
                     memory: 256Mi
+        # ADDED: Persistent volume claim template for data persistence
+        volumeClaimTemplates:
+          - metadata:
+              name: data-volume
+            spec:
+              accessModes: ["ReadWriteOnce"]
+              storageClassName: "ebs-mongodb"  # Using your EBS CSI storage class
+              resources:
+                requests:
+                  storage: 20Gi
 
 # Database credentials
 credentials:
