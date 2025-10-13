@@ -15,26 +15,6 @@ spec:
       labels:
         {{- include "geodish-app.selectorLabels" . | nindent 8 }}
     spec:
-      # ADDED: Init container to automatically seed database
-      initContainers:
-        - name: database-seeder
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          command: ["/bin/sh"]
-          args: ["-c", "python -c 'from app.seed_manager import SeedManager; from app.models import Database; SeedManager(Database()).seed_database()' || true"]
-          env:
-            {{- range .Values.env }}
-            - name: {{ .name }}
-              value: {{ .value | quote }}
-            {{- end }}
-            - name: MONGODB_URI
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.mongodb.secretName }}
-                  key: {{ .Values.mongodb.connectionStringKey }}
-          volumeMounts:
-            - name: tmp
-              mountPath: /tmp
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
