@@ -5,3 +5,6 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   {{- toYaml .Values.mongodb.spec | nindent 2 }}
+{{- if .Values.mongodb.scramCredentialsSecretName }}
+scramCredentialsSecretName: {{ .Values.mongodb.scramCredentialsSecretName }}
+{{- end }}

@@ -8,6 +8,8 @@ community-operator:
 # MongoDB instance configuration
 mongodb:
   name: geodish-mongodb
+  # TOP LEVEL FIELD - not nested under spec
+  scramCredentialsSecretName: geodish-mongodb-scram
   spec:
     members: 1
     type: ReplicaSet
@@ -29,10 +31,6 @@ mongodb:
             db: admin
           - name: readWriteAnyDatabase
             db: admin
-    
-    # FIX: Changed from "mongodb-scram" to "geodish-mongodb-scram"
-    # The secret name was being prefixed with empty string, causing "-scram-credentials"
-    scramCredentialsSecretName: geodish-mongodb-scram
     
     additionalMongodConfig:
       storage.wiredTiger.engineConfig.journalCompressor: zlib
