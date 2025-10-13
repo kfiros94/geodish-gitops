@@ -15,14 +15,13 @@ spec:
       labels:
         {{- include "geodish-app.selectorLabels" . | nindent 8 }}
     spec:
-      containers:
-        - name: {{ .Chart.Name }}
+      # ADD THIS: Init container to seed database
+      initContainers:
+        - name: database-seeder
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          ports:
-            - name: http
-              containerPort: {{ .Values.service.targetPort }}
-              protocol: TCP
+          command: ["/bin/sh"]
+          args: ["-c", "python -c 'from app.seed_manager import SeedManager; from app.models import Database; SeedManager(Database()).seed_database()' || true"]
           env:
             {{- range .Values.env }}
             - name: {{ .name }}
@@ -33,27 +32,6 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.mongodb.secretName }}
                   key: {{ .Values.mongodb.connectionStringKey }}
-          livenessProbe:
-            {{- toYaml .Values.livenessProbe | nindent 12 }}
-          readinessProbe:
-            {{- toYaml .Values.readinessProbe | nindent 12 }}
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-          volumeMounts:
-            - name: tmp
-              mountPath: /tmp
-      volumes:
-        - name: tmp
-          emptyDir: {}
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          # ... rest of your existing container config
