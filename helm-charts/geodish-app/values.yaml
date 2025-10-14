@@ -15,19 +15,23 @@ service:
   port: 5000
   targetPort: 5000
 
-# Ingress configuration
+# Ingress configuration - HTTPS with Let's Encrypt
 ingress:
   enabled: true
   className: "nginx"
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
   hosts:
-    - host: ""  # Accept any host
+    - host: "kfir-cowsay.ddns.net"
       paths:
         - path: /
           pathType: Prefix
-  tls: []
+  tls:
+    - secretName: geodish-tls
+      hosts:
+        - kfir-cowsay.ddns.net
+
 # Resource limits and requests
 resources:
   limits:
@@ -61,7 +65,7 @@ env:
   - name: FLASK_ENV
     value: "production"
   - name: FLASK_APP
-    value: "app.app:app"  # Fixed: pointing to the correct module and app object
+    value: "app.app:app"
   - name: PORT
     value: "5000"
 
