@@ -1,0 +1,50 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "geodish-app.fullname" . }}-seed
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "geodish-app.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  ttlSecondsAfterFinished: 100
+  template:
+    metadata:
+      labels:
+        app: seed-job
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: seed-database
+        image: curlimages/curl:latest
+        command:
+          - sh
+          - -c
+          - |
+            echo "Waiting for GeoDish app to be ready..."
+            for i in $(seq 1 30); do
+              if curl -f http://{{ include "geodish-app.fullname" . }}:{{ .Values.service.port }}/health > /dev/null 2>&1; then
+                echo "App is ready!"
+                break
+              fi
+              echo "Waiting... ($i/30)"
+              sleep 10
+            done
+            
+            echo "Checking if database needs seeding..."
+            SEED_INFO=$(curl -s http://{{ include "geodish-app.fullname" . }}:{{ .Values.service.port }}/seed-info)
+            echo "Seed info: $SEED_INFO"
+            
+            echo "Seeding database..."
+            RESULT=$(curl -s -X POST http://{{ include "geodish-app.fullname" . }}:{{ .Values.service.port }}/seed)
+            echo "Seed result: $RESULT"
+            
+            if echo "$RESULT" | grep -q "Successfully seeded\|already seeded"; then
+              echo "✅ Database seeding completed successfully!"
+              exit 0
+            else
+              echo "❌ Database seeding failed"
+              exit 1
+            fi
