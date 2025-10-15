@@ -68,3 +68,22 @@ applications:
           duration: 5s
           factor: 2
           maxDuration: 3m
+  logging:
+    name: geodish-logging
+    namespace: logging
+    project: default
+    path: helm-charts/logging
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+        - PrunePropagationPolicy=foreground
+        - PruneLast=true
+      retry:
+        limit: 5
+        backoff:
+          duration: 5s
+          factor: 2
+          maxDuration: 3m

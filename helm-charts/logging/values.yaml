@@ -1,0 +1,119 @@
+# Logging stack configuration
+namespace: logging
+
+# Elasticsearch configuration
+elasticsearch:
+  replicas: 1
+  minimumMasterNodes: 1
+  
+  # Persistent storage with Retain policy
+  persistence:
+    enabled: true
+    labels:
+      enabled: true
+  
+  volumeClaimTemplate:
+    accessModes: ["ReadWriteOnce"]
+    storageClassName: "ebs-grafana-retain"
+    resources:
+      requests:
+        storage: 20Gi
+  
+  # Resource limits
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"
+  
+  esJavaOpts: "-Xmx1g -Xms1g"
+  
+  # Single node cluster
+  clusterHealthCheckParams: "wait_for_status=yellow&timeout=1s"
+
+# Kibana configuration
+kibana:
+  replicas: 1
+  
+  service:
+    type: LoadBalancer
+    port: 5601
+  
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+  
+  elasticsearchHosts: "http://elasticsearch-master:9200"
+  
+  kibanaConfig:
+    kibana.yml: |
+      server.name: kibana
+      server.host: "0.0.0.0"
+      elasticsearch.hosts: [ "http://elasticsearch-master:9200" ]
+
+# Fluentd configuration
+fluentd:
+  kind: "DaemonSet"
+  
+  # Run on all nodes
+  tolerations:
+    - effect: NoSchedule
+      key: node-role.kubernetes.io/master
+  
+  resources:
+    limits:
+      cpu: 200m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  
+  # Output to Elasticsearch
+  fileConfigs:
+    01_sources.conf: |-
+      <source>
+        @type tail
+        @id in_tail_container_logs
+        path /var/log/containers/*.log
+        pos_file /var/log/fluentd-containers.log.pos
+        tag kubernetes.*
+        read_from_head true
+        <parse>
+          @type json
+          time_format %Y-%m-%dT%H:%M:%S.%NZ
+        </parse>
+      </source>
+    
+    02_filters.conf: |-
+      <filter kubernetes.**>
+        @type kubernetes_metadata
+        @id filter_kube_metadata
+      </filter>
+    
+    03_outputs.conf: |-
+      <match **>
+        @type elasticsearch
+        @id out_es
+        host elasticsearch-master
+        port 9200
+        logstash_format true
+        logstash_prefix fluentd
+        <buffer>
+          @type file
+          path /var/log/fluentd-buffers/kubernetes.system.buffer
+          flush_mode interval
+          retry_type exponential_backoff
+          flush_interval 5s
+          retry_forever false
+          retry_max_interval 30
+          chunk_limit_size 2M
+          total_limit_size 500M
+          overflow_action block
+        </buffer>
+      </match>
