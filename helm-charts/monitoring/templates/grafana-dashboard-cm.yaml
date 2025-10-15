@@ -1,0 +1,123 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: geodish-dashboard
+  namespace: {{ .Values.namespace }}
+  labels:
+    grafana_dashboard: "1"
+    app: grafana
+data:
+  geodish-dashboard.json: |-
+    {
+      "dashboard": {
+        "title": "GeoDish Production Monitoring",
+        "tags": ["geodish", "production"],
+        "timezone": "browser",
+        "panels": [
+          {
+            "id": 1,
+            "title": "GeoDish App Pods Running",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "count(kube_pod_info{namespace=\"devops-app\", pod=~\"geodish-app.*\"})",
+                "refId": "A"
+              }
+            ],
+            "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0}
+          },
+          {
+            "id": 2,
+            "title": "MongoDB Pods Running",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "count(kube_pod_info{namespace=\"devops-app\", pod=~\".*mongodb.*\"})",
+                "refId": "A"
+              }
+            ],
+            "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0}
+          },
+          {
+            "id": 3,
+            "title": "Memory Usage by Node",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100",
+                "refId": "A",
+                "legendFormat": "{{instance}}"
+              }
+            ],
+            "gridPos": {"h": 4, "w": 12, "x": 12, "y": 0},
+            "fieldConfig": {
+              "defaults": {
+                "unit": "percent"
+              }
+            }
+          },
+          {
+            "id": 4,
+            "title": "CPU Usage by Node",
+            "type": "gauge",
+            "targets": [
+              {
+                "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+                "refId": "A",
+                "legendFormat": "{{instance}}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 24, "x": 0, "y": 4},
+            "fieldConfig": {
+              "defaults": {
+                "unit": "percent",
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {"value": 0, "color": "green"},
+                    {"value": 70, "color": "yellow"},
+                    {"value": 85, "color": "red"}
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "id": 5,
+            "title": "Pod Count by Namespace",
+            "type": "piechart",
+            "targets": [
+              {
+                "expr": "count(kube_pod_info) by (namespace)",
+                "refId": "A",
+                "legendFormat": "{{namespace}}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12}
+          },
+          {
+            "id": 6,
+            "title": "Network Traffic",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(container_network_receive_bytes_total{namespace=\"devops-app\"}[5m])",
+                "refId": "A",
+                "legendFormat": "{{pod}}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+            "fieldConfig": {
+              "defaults": {
+                "unit": "Bps"
+              }
+            }
+          }
+        ],
+        "refresh": "30s",
+        "time": {
+          "from": "now-1h",
+          "to": "now"
+        }
+      }
+    }

@@ -1,0 +1,110 @@
+# Monitoring stack configuration
+namespace: monitoring
+
+# Grafana admin credentials
+grafana:
+  adminPassword: "GeoDishGrafana123!"
+
+# Kube-prometheus-stack values
+kube-prometheus-stack:
+  prometheus:
+    prometheusSpec:
+      retention: 7d
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            storageClassName: ebs-gp3
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 10Gi
+      resources:
+        limits:
+          cpu: 500m
+          memory: 1Gi
+        requests:
+          cpu: 250m
+          memory: 512Mi
+      serviceMonitorSelectorNilUsesHelmValues: false
+      podMonitorSelectorNilUsesHelmValues: false
+
+  grafana:
+    enabled: true
+    adminPassword: GeoDishGrafana123!
+    
+    service:
+      type: LoadBalancer
+    
+    persistence:
+      enabled: true
+      storageClassName: ebs-grafana-retain
+      size: 5Gi
+      accessModes:
+        - ReadWriteOnce
+    
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+    
+    # Dashboard provider configuration
+    dashboardProviders:
+      dashboardproviders.yaml:
+        apiVersion: 1
+        providers:
+          - name: 'default'
+            orgId: 1
+            folder: ''
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /var/lib/grafana/dashboards/default
+          - name: 'geodish'
+            orgId: 1
+            folder: 'GeoDish'
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /var/lib/grafana/dashboards/geodish
+    
+    # Import pre-built dashboards
+    dashboards:
+      default:
+        kubernetes-cluster:
+          gnetId: 7249
+          revision: 1
+          datasource: Prometheus
+        kubernetes-pods:
+          gnetId: 6417
+          revision: 1
+          datasource: Prometheus
+        node-exporter:
+          gnetId: 1860
+          revision: 31
+          datasource: Prometheus
+    
+    # Enable sidecar for ConfigMap dashboards
+    sidecar:
+      dashboards:
+        enabled: true
+        label: grafana_dashboard
+        folder: /tmp/dashboards
+        provider:
+          foldersFromFilesStructure: true
+
+  alertmanager:
+    enabled: false
+
+  nodeExporter:
+    enabled: true
+
+  kubeStateMetrics:
+    enabled: true
+
+  prometheusOperator:
+    enabled: true
