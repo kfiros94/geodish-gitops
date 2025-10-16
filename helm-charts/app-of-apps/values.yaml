@@ -60,6 +60,8 @@ applications:
         selfHeal: true
       syncOptions:
         - CreateNamespace=true
+        - ServerSideApply=true           # ← FIX: Handle large CRDs
+        - RespectIgnoreDifferences=true  # ← FIX: Ignore metadata differences
         - PrunePropagationPolicy=foreground
         - PruneLast=true
       retry:
