@@ -7,7 +7,9 @@ grafana:
 
 # Kube-prometheus-stack values
 kube-prometheus-stack:
+  # CRITICAL: Enable Prometheus instance!
   prometheus:
+    enabled: true  # ← THIS WAS MISSING!
     prometheusSpec:
       retention: 7d
       storageSpec:
