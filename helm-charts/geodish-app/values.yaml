@@ -4,7 +4,7 @@ replicaCount: 2
 image:
   repository: 893692751288.dkr.ecr.ap-south-1.amazonaws.com/geodish-app
   pullPolicy: Always
-  tag: "59"
+  tag: "60"
 
 nameOverride: ""
 fullnameOverride: ""
